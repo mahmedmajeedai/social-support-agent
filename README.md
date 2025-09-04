@@ -51,7 +51,6 @@ social-support-agent/
 ├─ README.md  
 └─ requirements.txt  
 
-
 ---
 
 ## ⚡ Quickstart
@@ -64,3 +63,14 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+
+### 2. Add dummy data
+Place your files:
+- `data/raw/pdfs/bank_statement_sample.pdf`
+- `data/raw/txt/resume_sample.txt`
+- `data/raw/txt/credit_report_sample.txt`
+- `data/raw/excel/assets_liabilities_sample.csv`
+
+### 3. Build index
+```bash
+bash scripts/ingest.sh
