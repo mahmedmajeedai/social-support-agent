@@ -33,18 +33,18 @@ This project is demonstrating **Generative AI + Agentic AI** for automating soci
 social-support-agent/  
 ├─ data/  
 │ ├─ raw/  
-│ │ ├─ pdfs/ # e.g., bank_statement_sample.pdf  
-│ │ ├─ txt/ # resume_sample.txt, credit_report_sample.txt  
-│ │ └─ excel/ # assets_liabilities_sample.csv  
+│ │ ├─ pdfs/ 
+│ │ ├─ txt/  
+│ │ └─ excel/   
 │ └─ processed/  
 ├─ scripts/  
-│ └─ ingest.sh # build Chroma index  
+│ └─ ingest.sh   
 ├─ src/  
-│ ├─ api/ # FastAPI app  
-│ ├─ agent/ # agent logic (retrieval + synthesis)  
-│ ├─ retrieval/ # ingestion & query  
-│ ├─ utils/ # financial parsing helpers  
-│ └─ ui/ # optional Streamlit UI  
+│ ├─ api/ 
+│ ├─ agent/   
+│ ├─ retrieval/   
+│ ├─ utils/ 
+│ └─ ui/ # 
 ├─ tests/  
 ├─ README.md  
 └─ requirements.txt  
