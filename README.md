@@ -1,6 +1,6 @@
-# Social Support Agent (PoC)
+# Social Support Agent
 
-This project is a **Proof of Concept** demonstrating **Generative AI + Agentic AI** for automating
+This project is demonstrating **Generative AI + Agentic AI** for automating
 social support application decisions. It is built around the case study requirements of a government
 social security department:contentReference[oaicite:0]{index=0}.
 
