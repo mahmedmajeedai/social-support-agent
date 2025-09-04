@@ -44,7 +44,7 @@ social-support-agent/
 │ ├─ agent/     
 │ ├─ retrieval/   
 │ ├─ utils/  
-│ └─ ui/ #  
+│ └─ ui/  
 ├─ tests/  
 ├─ README.md    
 └─ requirements.txt   
