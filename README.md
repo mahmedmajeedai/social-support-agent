@@ -29,8 +29,8 @@ This project is demonstrating **Generative AI + Agentic AI** for automating soci
 
 ---
 
-## 📂 Project Structure
-social-support-agent/
+## 📂 Project Structure  
+social-support-agent/  
 ├─ .chroma/                   
 ├─ .venv/                     
 ├─ data/                      
