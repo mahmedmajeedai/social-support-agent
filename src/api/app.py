@@ -13,5 +13,4 @@ class AskBody(BaseModel):
 
 @app.post("/ask")
 def ask(body: AskBody):
-    result = answer_question(body.question)
-    return result
+    return answer_question(body.question)
