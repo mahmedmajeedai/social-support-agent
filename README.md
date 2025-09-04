@@ -63,6 +63,7 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
 ### 2. Add dummy data
 Place your files:
@@ -74,3 +75,4 @@ Place your files:
 ### 3. Build index
 ```bash
 bash scripts/ingest.sh
+```
