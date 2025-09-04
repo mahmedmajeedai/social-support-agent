@@ -33,21 +33,21 @@ This project is demonstrating **Generative AI + Agentic AI** for automating soci
 social-support-agent/  
 ├─ data/  
 │ ├─ raw/  
-│ │ ├─ pdfs/ 
+│ │ ├─ pdfs/  
 │ │ ├─ txt/  
-│ │ └─ excel/   
-│ └─ processed/  
+│ │ └─ excel/    
+│ └─ processed/    
 ├─ scripts/  
 │ └─ ingest.sh   
-├─ src/  
-│ ├─ api/ 
-│ ├─ agent/   
+├─ src/   
+│ ├─ api/  
+│ ├─ agent/     
 │ ├─ retrieval/   
-│ ├─ utils/ 
-│ └─ ui/ # 
+│ ├─ utils/  
+│ └─ ui/ #  
 ├─ tests/  
-├─ README.md  
-└─ requirements.txt  
+├─ README.md    
+└─ requirements.txt   
 
 ---
 
