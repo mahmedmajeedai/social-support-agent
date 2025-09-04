@@ -31,26 +31,26 @@ This project is demonstrating **Generative AI + Agentic AI** for automating soci
 
 ## 📂 Project Structure
 social-support-agent/
-├─ .chroma/                 # Local Chroma vector database storage  
-├─ .venv/                   # Python virtual environment  
-├─ data/                    # Project data  
-│  ├─ processed/            # Pre-processed / cleaned data  
-│  └─ raw/                  # Raw input files (PDF, TXT, CSV, etc.)  
-├─ scripts/                 # Utility scripts (e.g., ingestion)  
-├─ src/                     # Source code  
-│  ├─ agent/                # Agent logic (generation, orchestration)  
+├─ .chroma/                   
+├─ .venv/                     
+├─ data/                      
+│  ├─ processed/              
+│  └─ raw/                    
+├─ scripts/                   
+├─ src/                       
+│  ├─ agent/                
 │  │  ├─ __pycache__/         
-│  │  ├─ generate.py        # Text generation wrapper (LLM/local)  
-│  │  └─ simple_agent.py    # Minimal agent: retrieval + synthesis  
-│  ├─ api/                  # FastAPI application  
+│  │  ├─ generate.py          
+│  │  └─ simple_agent.py      
+│  ├─ api/                    
 │  │  ├─ __pycache__/  
-│  │  └─ app.py             # API entrypoint (health, /ask endpoints)  
-│  ├─ retrieval/            # Document ingestion & query modules  
-│  ├─ ui/                   # Streamlit-based simple chat UI  
-│  └─ utils/                # Helper utilities (e.g., financial parsers)  
-├─ tests/                   # Unit and integration tests  
-├─ .gitignore               # Ignore rules for git  
-└─ README.md                # Project documentation  
+│  │  └─ app.py               
+│  ├─ retrieval/              
+│  ├─ ui/                     
+│  └─ utils/                  
+├─ tests/                     
+├─ .gitignore                 
+└─ README.md                  
 
 
 ---
