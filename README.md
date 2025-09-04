@@ -50,3 +50,17 @@ social-support-agent/
 ├─ tests/
 ├─ README.md
 └─ requirements.txt
+
+
+---
+
+## ⚡ Quickstart
+
+### 1. Clone & setup
+```bash
+git clone <your-repo-url>
+cd social-support-agent
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
