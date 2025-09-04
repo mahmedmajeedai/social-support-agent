@@ -76,3 +76,7 @@ Place your files:
 ```bash
 bash scripts/ingest.sh
 ```
+### 4. Run API
+```bash
+uvicorn src.api.app:app --reload --port 8000
+```
