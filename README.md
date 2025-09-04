@@ -1,8 +1,6 @@
 # Social Support Agent
 
-This project is demonstrating **Generative AI + Agentic AI** for automating
-social support application decisions. It is built around the case study requirements of a government
-social security department:contentReference[oaicite:0]{index=0}.
+This project is demonstrating **Generative AI + Agentic AI** for automating social support application decisions. It is built around the case study requirements of a government social security department.
 
 ---
 
