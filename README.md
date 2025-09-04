@@ -32,4 +32,21 @@ social security department:contentReference[oaicite:0]{index=0}.
 ---
 
 ## 📂 Project Structure
-
+social-support-agent/
+├─ data/
+│ ├─ raw/
+│ │ ├─ pdfs/ # e.g., bank_statement_sample.pdf
+│ │ ├─ txt/ # resume_sample.txt, credit_report_sample.txt
+│ │ └─ excel/ # assets_liabilities_sample.csv
+│ └─ processed/
+├─ scripts/
+│ └─ ingest.sh # build Chroma index
+├─ src/
+│ ├─ api/ # FastAPI app
+│ ├─ agent/ # agent logic (retrieval + synthesis)
+│ ├─ retrieval/ # ingestion & query
+│ ├─ utils/ # financial parsing helpers
+│ └─ ui/ # optional Streamlit UI
+├─ tests/
+├─ README.md
+└─ requirements.txt
