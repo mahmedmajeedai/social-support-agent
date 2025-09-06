@@ -27,14 +27,26 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Rebuild Index"):
         with st.spinner("Ingesting documents into Chroma..."):
-            # run your ingest script
-            # make sure scripts/ingest.sh is executable (chmod +x scripts/ingest.sh)
-            proc = subprocess.run(["bash", "scripts/ingest.sh"], capture_output=True, text=True)
-            if proc.returncode == 0:
-                st.success("✅ Ingestion complete.")
+            # Resolve project root and script path from this file
+            ROOT = Path(__file__).resolve().parents[2]  # social-support-agent/
+            INGEST = ROOT / "scripts" / "ingest.sh"
+            if not INGEST.exists():
+                st.error(f"Ingest script not found: {INGEST}")
             else:
-                st.error("Ingestion failed.")
-                st.code(proc.stderr)
+                proc = subprocess.run(
+                    ["bash", str(INGEST)],
+                    cwd=str(ROOT),                    # IMPORTANT: run from project root
+                    capture_output=True,
+                    text=True
+                )
+                if proc.returncode == 0:
+                    st.success("✅ Ingestion complete.")
+                    if proc.stdout:
+                        st.caption(proc.stdout.strip())
+                else:
+                    st.error("Ingestion failed.")
+                    st.code(proc.stderr or proc.stdout or "No output")
+
 
     st.markdown("---")
     # Backend health
