@@ -1,0 +1,3 @@
+Credit Score: 720
+Outstanding Loans: 1 (Car Loan)
+Repayment History: Good
