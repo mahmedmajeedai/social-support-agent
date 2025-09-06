@@ -54,14 +54,11 @@ def generate(prompt: str, max_new_tokens: int = 220, temperature: float = 0.2) -
         resp = completion(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "Return a SINGLE short paragraph in plain text. Be concise, factual, grounded."},
+                {"role": "system", "content": "Return one short paragraph. Be concise and grounded in the provided context."},
                 {"role": "user", "content": prompt},
             ],
             temperature=temperature,
-            max_tokens=max_new_tokens,
-            # stop tokens help avoid trailing formatting
-            stop=["```", "---", "#"],
-        )
+            max_tokens=max_new_tokens,)
         return _postprocess(resp.choices[0].message.content or "")
 
     pipe = _ensure_local_pipe()
