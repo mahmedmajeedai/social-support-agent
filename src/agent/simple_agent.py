@@ -4,7 +4,6 @@ from src.utils.financial import summarize_assets_liabilities, parse_bank_stateme
 from src.agent.generate import generate
 from src.agent.eligibility import assess_eligibility
 
-# ---------- existing financial assessment (keep as-is) ----------
 def _try_compute_financials(citations):
     out = {"assets": None, "bank": None, "credit": None}
     for c in citations:
@@ -21,20 +20,38 @@ def _try_compute_financials(citations):
     credit_score = (out.get("credit") or {}).get("credit_score", None)
     return out, income, liabilities_total, expenses, credit_score
 
+def _deterministic_paragraph(income, expenses, liabilities_total, credit_score, decision, cite_files):
+    parts = [
+        f"Monthly income is {income:,.0f}",
+        f"expenses are about {expenses:,.0f}",
+        f"total liabilities are {liabilities_total:,.0f}",
+    ]
+    if credit_score is not None:
+        parts.append(f"credit score is {int(credit_score)}")
+    parts.append(f"decision: {decision['status']}")
+    if decision["reasons"]:
+        parts.append(f"reasons: {', '.join(decision['reasons'])}")
+    paragraph = "; ".join(parts) + "."
+    return f"{paragraph} (sources: {', '.join(cite_files)})"
+
 def answer_question(question: str):
     hits = retrieve(question, k=5)
     computed, income, liabilities_total, expenses, credit_score = _try_compute_financials(hits)
+
+    # unique citation filenames
     cite_files = []
     for h in hits[:3]:
         fn = Path(h["source"]).name
         if fn not in cite_files:
             cite_files.append(fn)
+
     ctx = "\n\n".join([h["text"] for h in hits[:3]])
 
+    # deterministic decision
     decision = assess_eligibility(income, expenses, liabilities_total, credit_score)
 
-    prompt = f"""Summarize the applicant’s financial position using only the context and computed facts.
-Write one short paragraph in plain text using the numbers exactly as provided.
+    # ask LLM for a clean paragraph
+    prompt = f"""Use ONLY the context and computed facts to summarize finances in one short paragraph.
 
 Context:
 {ctx}
@@ -45,10 +62,16 @@ Computed facts:
 - total_liabilities = {liabilities_total}
 - credit_score = {credit_score}
 - decision = {decision['status']}
-- reasons = {', '.join(decision['reasons']) if decision['reasons'] else 'None'}
-"""
-    paragraph = generate(prompt, max_new_tokens=200, temperature=0.1).strip()
-    final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
+- decision_reasons = {', '.join(decision['reasons']) if decision['reasons'] else 'None'}
+
+Return a single plain-text paragraph."""
+    paragraph = generate(prompt, max_new_tokens=220, temperature=0.1).strip()
+
+    # fallback if LLM output is too short or looks like an echo
+    if len(paragraph) < 60 or paragraph.lower().startswith(("return ", "reasons", "context", "computed")):
+        final_answer = _deterministic_paragraph(income, expenses, liabilities_total, credit_score, decision, cite_files)
+    else:
+        final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
 
     return {
         "answer": final_answer,
