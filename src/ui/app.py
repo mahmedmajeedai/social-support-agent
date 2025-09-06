@@ -10,7 +10,7 @@ API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 RAW_DIR = Path("data/raw/uploads")
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-st.set_page_config(page_title="Social Support Agent (PoC)", layout="centered")
+st.set_page_config(page_title="Social Support Agent", layout="centered")
 st.title("Social Support Agent (PoC)")
 
 with st.sidebar:
