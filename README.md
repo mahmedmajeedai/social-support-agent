@@ -57,7 +57,7 @@ social-support-agent/
 
 ### 1. Clone & setup
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/mahmedmajeedai/social-support-agent.git
 cd social-support-agent
 python3.11 -m venv .venv
 source .venv/bin/activate
