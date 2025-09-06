@@ -8,9 +8,9 @@ app = FastAPI(title="Social Support Agent (PoC)")
 def home():
     return {
         "message": "Social Support Agent API is running.",
-        "try": ["/health", "/docs", "POST /ask"],
+        "try": ["/health", "/docs", "POST /ask", "POST /assess"],
         "example": {
-            "POST /ask": {"question": "What are the applicant’s income and liabilities based on the documents?"}
+            "POST /assess": {"question": "Assess eligibility and summarize the applicant’s finances."}
         }
     }
 
@@ -23,4 +23,8 @@ class AskBody(BaseModel):
 
 @app.post("/ask")
 def ask(body: AskBody):
+    return answer_question(body.question)
+
+@app.post("/assess")
+def assess(body: AskBody):
     return answer_question(body.question)
