@@ -37,3 +37,4 @@ def parse_bank_statement_text(txt: str):
         "estimated_monthly_expenses": float(expenses),
         "ending_balance_guess": end_balance,
     }
+
