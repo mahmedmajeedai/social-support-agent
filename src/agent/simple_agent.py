@@ -21,11 +21,19 @@ def _try_compute_financials(citations):
 def answer_question(question: str):
     hits = retrieve(question, k=5)
     computed, income, liabilities_total, expenses = _try_compute_financials(hits)
-    cite_files = [Path(h["source"]).name for h in hits[:3]]
+
+    # build clean, unique citation list
+    cite_files = []
+    for h in hits[:3]:
+        fn = Path(h["source"]).name
+        if fn not in cite_files:
+            cite_files.append(fn)
+
     ctx = "\n\n".join([h["text"] for h in hits[:3]])
 
+    # IMPORTANT: ask LLM to NOT include citations; we’ll append them deterministically
     prompt = f"""Summarize the applicant’s income and liabilities using ONLY the information below.
-Write 3–5 concise sentences in plain text. Use the exact computed values. End with citations as filenames in parentheses.
+Write 3–5 concise sentences in plain text. Use the exact computed values. Do not include citations.
 
 Context:
 {ctx}
@@ -35,14 +43,13 @@ Computed:
 - monthly_expenses = {expenses}
 - total_liabilities = {liabilities_total}
 - credit_score = {(computed.get('credit') or {}).get('credit_score', 'unknown')}
-
-Citations: {", ".join(cite_files)}
 """
 
-    natural = generate(prompt, max_new_tokens=200, temperature=0.1)
+    paragraph = generate(prompt, max_new_tokens=200, temperature=0.1).strip()
+    final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
 
     return {
-        "answer": natural,
+        "answer": final_answer,
         "structured": {
             "monthly_income_estimate": income,
             "total_liabilities_estimate": liabilities_total,
