@@ -57,20 +57,31 @@ with st.sidebar:
         st.error(f"Backend check failed: {e}")
 
 st.subheader("Assessment")
-q = st.text_input(
-    "Ask something like: “Assess eligibility and summarize the applicant’s finances.”",
-    "Assess eligibility and summarize the applicant’s finances."
+
+mode = st.radio(
+    "Mode",
+    ("Assessment (financial)", "Document Q&A"),
+    horizontal=True,
 )
 
-if st.button("Run Assessment"):
+q_default = "Assess eligibility and summarize the applicant’s finances." if mode.startswith("Assessment") else "Ask a question about the uploaded documents."
+q = st.text_input(
+    "Prompt",
+    q_default,
+)
+
+if st.button("Run"):
     try:
-        resp = requests.post(f"{API_BASE}/assess", json={"question": q}, timeout=120)
+        endpoint = "/assess" if mode.startswith("Assessment") else "/ask"
+        resp = requests.post(f"{API_BASE}{endpoint}", json={"question": q}, timeout=120)
         data = resp.json()
+
         st.write("### Answer")
         st.write(data.get("answer", "(no answer)"))
 
-        st.write("### Structured")
-        st.json(data.get("structured", {}))
+        if mode.startswith("Assessment"):
+            st.write("### Structured")
+            st.json(data.get("structured", {}))
 
         st.write("### Citations")
         for c in data.get("citation_files", []):
@@ -78,4 +89,4 @@ if st.button("Run Assessment"):
     except Exception as e:
         st.error(str(e))
 
-st.caption("Tip: Upload files in the sidebar, click **Rebuild Index**, then run assessment.")
+st.caption("Tip: Upload files in the sidebar, click Rebuild Index, then run.")

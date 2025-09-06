@@ -91,10 +91,15 @@ Return a single plain-text paragraph."""
 def answer_freeform(question: str):
     hits = retrieve(question, k=5)
 
-    # Relevance guard: if nothing looks relevant, say so.
+    # sort by similarity when present
     TOP = [h for h in hits if h.get("similarity") is not None]
-    TOP.sort(key=lambda x: x["similarity"], reverse=True)
-    if not TOP or TOP[0]["similarity"] < 0.25:
+    if TOP:
+        TOP.sort(key=lambda x: x["similarity"], reverse=True)
+    else:
+        TOP = hits  # if distances are unavailable, just use the order
+
+    # LOWER threshold to accept small docs (from 0.25 -> 0.05)
+    if not TOP or (TOP[0].get("similarity") is not None and TOP[0]["similarity"] < 0.05):
         return {
             "answer": "I couldn’t find relevant information in the uploaded documents for that query.",
             "structured": {},
@@ -102,13 +107,17 @@ def answer_freeform(question: str):
             "citation_files": [],
         }
 
-    cite_files = []
+    # build citations + context
+    from pathlib import Path
+    cite_files, ctx_parts = [], []
     for h in TOP[:3]:
         fn = Path(h["source"]).name
         if fn not in cite_files:
             cite_files.append(fn)
+        ctx_parts.append(h["text"])
+    ctx = "\n\n".join(ctx_parts)
 
-    ctx = "\n\n".join([h["text"] for h in TOP[:3]])
+    from src.agent.generate import generate
     prompt = f"""Answer the user's question using only the context.
 Write one concise paragraph in plain text.
 
@@ -117,12 +126,12 @@ Question: {question}
 Context:
 {ctx}
 """
-    paragraph = generate(prompt, max_new_tokens=200, temperature=0.2).strip()
+    paragraph = generate(prompt, max_new_tokens=220, temperature=0.2).strip()
     final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
 
     return {
         "answer": final_answer,
-        "structured": {},   # freeform path returns no computed financials
+        "structured": {},
         "citations": [{"source": h["source"]} for h in TOP[:3]],
         "citation_files": cite_files,
     }

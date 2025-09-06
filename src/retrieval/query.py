@@ -1,3 +1,4 @@
+# src/retrieval/query.py
 import os
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -10,12 +11,12 @@ _embed = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 def retrieve(query: str, k: int = 5):
     q = _embed.encode(query, normalize_embeddings=True).tolist()
     res = _coll.query(query_embeddings=[q], n_results=k, include=["documents", "metadatas", "distances"])
-    docs   = res["documents"][0]
-    metas  = res["metadatas"][0]
-    dists  = res.get("distances", [[None]*len(docs)])[0]
-    # Chroma returns cosine distance (0 = identical). Convert to similarity ~ (1 - dist).
+    docs   = res.get("documents", [[]])[0]
+    metas  = res.get("metadatas", [[]])[0]
+    dists  = res.get("distances", [[]])[0] if res.get("distances") else [None] * len(docs)
+
     out = []
     for d, m, dist in zip(docs, metas, dists):
-        sim = None if dist is None else (1.0 - float(dist))
+        sim = None if dist is None else (1.0 - float(dist))  # cosine similarity proxy
         out.append({"text": d, "source": m.get("source", "unknown"), "similarity": sim})
     return out
