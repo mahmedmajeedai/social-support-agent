@@ -1,7 +1,9 @@
+# src/agent/simple_agent.py
 from pathlib import Path
 from src.retrieval.query import retrieve
 from src.utils.financial import summarize_assets_liabilities, parse_bank_statement_text
 from src.agent.generate import generate
+from src.agent.eligibility import assess_eligibility
 
 def _try_compute_financials(citations):
     out = {"assets": None, "bank": None, "credit": None}
@@ -12,17 +14,18 @@ def _try_compute_financials(citations):
         elif src.endswith(".pdf"):
             out["bank"] = parse_bank_statement_text(c["text"])
         elif "credit_report" in Path(src).name:
-            out["credit"] = {"credit_score": 720}
+            out["credit"] = {"credit_score": 720}  # from dummy data
     income = (out["bank"]["estimated_monthly_income"] if out["bank"] else 0.0)
     liabilities_total = (out["assets"]["total_liabilities"] if out["assets"] else 0.0)
     expenses = (out["bank"]["estimated_monthly_expenses"] if out["bank"] else 0.0)
-    return out, income, liabilities_total, expenses
+    credit_score = (out.get("credit") or {}).get("credit_score", None)
+    return out, income, liabilities_total, expenses, credit_score
 
 def answer_question(question: str):
     hits = retrieve(question, k=5)
-    computed, income, liabilities_total, expenses = _try_compute_financials(hits)
+    computed, income, liabilities_total, expenses, credit_score = _try_compute_financials(hits)
 
-    # build clean, unique citation list
+    # build unique citation filenames
     cite_files = []
     for h in hits[:3]:
         fn = Path(h["source"]).name
@@ -31,21 +34,27 @@ def answer_question(question: str):
 
     ctx = "\n\n".join([h["text"] for h in hits[:3]])
 
-    # IMPORTANT: ask LLM to NOT include citations; we’ll append them deterministically
-    prompt = f"""Summarize the applicant’s income and liabilities using ONLY the information below.
-Write 3–5 concise sentences in plain text. Use the exact computed values. Do not include citations.
+    # 1) Deterministic decision
+    decision = assess_eligibility(income, expenses, liabilities_total, credit_score)
+
+    # 2) LLM summary (plain text, we append citations ourselves)
+    prompt = f"""Summarize the applicant’s financial position using only the context and computed facts.
+Write a single short paragraph in plain text. Use the numbers exactly as provided.
 
 Context:
 {ctx}
 
-Computed:
+Computed facts:
 - monthly_income = {income}
 - monthly_expenses = {expenses}
 - total_liabilities = {liabilities_total}
-- credit_score = {(computed.get('credit') or {}).get('credit_score', 'unknown')}
-"""
+- credit_score = {credit_score}
+- decision = {decision['status']}
+- reasons = {', '.join(decision['reasons']) if decision['reasons'] else 'None'}
 
-    paragraph = generate(prompt, max_new_tokens=200, temperature=0.1).strip()
+Return only the paragraph, no bullet points, no headings.
+"""
+    paragraph = generate(prompt, max_new_tokens=220, temperature=0.1).strip()
     final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
 
     return {
@@ -56,6 +65,7 @@ Computed:
             "assets_liabilities_breakdown": computed.get("assets"),
             "bank_statement_summary": computed.get("bank"),
             "credit_summary": computed.get("credit"),
+            "decision": decision,
         },
         "citations": [{"source": h["source"]} for h in hits[:3]],
         "citation_files": cite_files,
