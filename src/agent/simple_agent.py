@@ -1,10 +1,10 @@
-# src/agent/simple_agent.py
 from pathlib import Path
 from src.retrieval.query import retrieve
 from src.utils.financial import summarize_assets_liabilities, parse_bank_statement_text
 from src.agent.generate import generate
 from src.agent.eligibility import assess_eligibility
 
+# ---------- existing financial assessment (keep as-is) ----------
 def _try_compute_financials(citations):
     out = {"assets": None, "bank": None, "credit": None}
     for c in citations:
@@ -14,7 +14,7 @@ def _try_compute_financials(citations):
         elif src.endswith(".pdf"):
             out["bank"] = parse_bank_statement_text(c["text"])
         elif "credit_report" in Path(src).name:
-            out["credit"] = {"credit_score": 720}  # from dummy data
+            out["credit"] = {"credit_score": 720}
     income = (out["bank"]["estimated_monthly_income"] if out["bank"] else 0.0)
     liabilities_total = (out["assets"]["total_liabilities"] if out["assets"] else 0.0)
     expenses = (out["bank"]["estimated_monthly_expenses"] if out["bank"] else 0.0)
@@ -24,22 +24,17 @@ def _try_compute_financials(citations):
 def answer_question(question: str):
     hits = retrieve(question, k=5)
     computed, income, liabilities_total, expenses, credit_score = _try_compute_financials(hits)
-
-    # build unique citation filenames
     cite_files = []
     for h in hits[:3]:
         fn = Path(h["source"]).name
         if fn not in cite_files:
             cite_files.append(fn)
-
     ctx = "\n\n".join([h["text"] for h in hits[:3]])
 
-    # 1) Deterministic decision
     decision = assess_eligibility(income, expenses, liabilities_total, credit_score)
 
-    # 2) LLM summary (plain text, we append citations ourselves)
     prompt = f"""Summarize the applicant’s financial position using only the context and computed facts.
-Write a single short paragraph in plain text. Use the numbers exactly as provided.
+Write one short paragraph in plain text using the numbers exactly as provided.
 
 Context:
 {ctx}
@@ -51,10 +46,8 @@ Computed facts:
 - credit_score = {credit_score}
 - decision = {decision['status']}
 - reasons = {', '.join(decision['reasons']) if decision['reasons'] else 'None'}
-
-Return only the paragraph, no bullet points, no headings.
 """
-    paragraph = generate(prompt, max_new_tokens=220, temperature=0.1).strip()
+    paragraph = generate(prompt, max_new_tokens=200, temperature=0.1).strip()
     final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
 
     return {
@@ -68,5 +61,45 @@ Return only the paragraph, no bullet points, no headings.
             "decision": decision,
         },
         "citations": [{"source": h["source"]} for h in hits[:3]],
+        "citation_files": cite_files,
+    }
+
+# ---------- NEW: freeform answer for /ask ----------
+def answer_freeform(question: str):
+    hits = retrieve(question, k=5)
+
+    # Relevance guard: if nothing looks relevant, say so.
+    TOP = [h for h in hits if h.get("similarity") is not None]
+    TOP.sort(key=lambda x: x["similarity"], reverse=True)
+    if not TOP or TOP[0]["similarity"] < 0.25:
+        return {
+            "answer": "I couldn’t find relevant information in the uploaded documents for that query.",
+            "structured": {},
+            "citations": [],
+            "citation_files": [],
+        }
+
+    cite_files = []
+    for h in TOP[:3]:
+        fn = Path(h["source"]).name
+        if fn not in cite_files:
+            cite_files.append(fn)
+
+    ctx = "\n\n".join([h["text"] for h in TOP[:3]])
+    prompt = f"""Answer the user's question using only the context.
+Write one concise paragraph in plain text.
+
+Question: {question}
+
+Context:
+{ctx}
+"""
+    paragraph = generate(prompt, max_new_tokens=200, temperature=0.2).strip()
+    final_answer = f"{paragraph} (sources: {', '.join(cite_files)})"
+
+    return {
+        "answer": final_answer,
+        "structured": {},   # freeform path returns no computed financials
+        "citations": [{"source": h["source"]} for h in TOP[:3]],
         "citation_files": cite_files,
     }
