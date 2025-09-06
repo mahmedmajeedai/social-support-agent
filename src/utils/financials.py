@@ -19,22 +19,42 @@ def summarize_assets_liabilities(csv_path: str):
     }
 
 def parse_bank_statement_text(txt: str):
-    # very simple rules: pick the largest positive as "salary", count negatives as expenses
-    # matches "+5000" or "-1500" etc.
-    amts = [float(a.replace("+","")) if "+" in a else -float(a.replace("-",""))
-            for a in re.findall(r"([+-]\d+(?:\.\d+)?)", txt)]
-    # salary ~= max positive
-    salary = max([x for x in amts if x>0], default=0.0)
-    expenses = -sum([x for x in amts if x<0])
+    """
+    Extract signed amounts like +5000 / -1500 and ignore year-like tokens (e.g., -2024).
+    """
+    import re
+
+    # signed 2–6 digit numbers like +5000, -1500, +300.50
+    raw = re.findall(r"([+-]\d{2,6}(?:\.\d{1,2})?)", txt)
+    vals = []
+    for token in raw:
+        v = float(token.replace("+", ""))
+        # ignore year-like values and absurdly large values
+        if 1900 <= abs(v) <= 2100:
+            continue
+        if abs(v) > 1_000_000:
+            continue
+        vals.append(v if token.startswith("+") else -abs(v))
+
+    positives = [x for x in vals if x > 0]
+    negatives = [x for x in vals if x < 0]
+
+    salary = max(positives, default=0.0)
+    expenses = -sum(negatives)
+
+    # try to capture a plausible ending balance (last 3–6 digit unsigned number)
     end_balance = None
-    # try to capture the last balance number on a line
-    balances = re.findall(r"\b(\d{3,})\b", txt)
+    balances = re.findall(r"\b(\d{3,6})\b", txt)
     if balances:
-        try: end_balance = float(balances[-1])
-        except: end_balance = None
+        try:
+            end_balance = float(balances[-1])
+        except Exception:
+            end_balance = None
+
     return {
         "estimated_monthly_income": float(salary),
         "estimated_monthly_expenses": float(expenses),
         "ending_balance_guess": end_balance,
     }
+
 
