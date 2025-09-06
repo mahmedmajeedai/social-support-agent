@@ -14,9 +14,7 @@ This project is demonstrating **Generative AI + Agentic AI** for automating soci
 - Showcase both **local ML/LLM** and the option to use **hosted LLMs** (Gemini, Groq, DeepSeek).
 
 ---
-
 ## 🏗️ Tech Stack
-
 - **Python 3.11**
 - **FastAPI** → backend API
 - **Streamlit** → simple UI
