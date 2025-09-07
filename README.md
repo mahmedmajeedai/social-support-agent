@@ -1,82 +1,93 @@
-# Social Support Agent
+# 🧑‍💻 Customer Support Agent (Locally Hosted GenAI + RAG)
 
-This project is demonstrating **Generative AI + Agentic AI** for automating social support application decisions. It is built around the case study requirements of a government social security department.
+This project is a **locally hosted Generative + Agentic AI chatbot** that answers questions **strictly from your uploaded documents** (PDF, TXT, CSV).  
+It uses:
 
----
+- **Ollama** to host a local LLM (e.g., LLaMA, Mistral, Phi-3).  
+- **SentenceTransformers** + **Chroma** (or optional Qdrant) for embeddings and retrieval.  
+- **FastAPI** as backend API.  
+- **Streamlit** as chat UI.  
 
-## 🎯 Objectives
-
-- Automate up to **99%** of applicant assessments within minutes of live interaction.
-- Support **multimodal data ingestion** (PDF, TXT, CSV).
-- Provide **financial eligibility checks** (income, liabilities, credit score).
-- Deliver **recommendations** (approve / soft decline, plus enablement opportunities).
-- Demonstrate **Agentic AI orchestration** (retrieval, validation, decision).
-- Showcase both **local ML/LLM** and the option to use **hosted LLMs** (Gemini, Groq, DeepSeek).
-
----
-## 🏗️ Tech Stack
-- **Python 3.11**
-- **FastAPI** → backend API
-- **Streamlit** → simple UI
-- **Chroma** → local vector store
-- **Sentence Transformers** → embeddings
-- **Transformers / Ollama** → local models
-- **LangGraph** → agent orchestration
-- **scikit-learn** → eligibility checks (ML classifier)
-- **LiteLLM (optional)** → access hosted LLMs (Gemini, Groq, DeepSeek)
+It fully complies with requirements: locally hosted LLM, multimodal ingestion, RAG, interactive chat, and orchestration:contentReference[oaicite:0]{index=0}.
 
 ---
 
-## 📂 Project Structure  
-social-support-agent/  
-├─ .chroma/                   
-├─ .venv/                     
-├─ data/                      
-│  ├─ processed/              
-│  └─ raw/                    
-├─ scripts/                   
-├─ src/                       
-│  ├─ agent/                
-│  │  ├─ __pycache__/         
-│  │  ├─ generate.py          
-│  │  └─ simple_agent.py      
-│  ├─ api/                    
-│  │  ├─ __pycache__/  
-│  │  └─ app.py               
-│  ├─ retrieval/              
-│  ├─ ui/                     
-│  └─ utils/                  
-├─ tests/                     
-├─ .gitignore                 
-└─ README.md                  
-
+## ✨ Features
+- Upload your own docs (PDF / TXT / CSV).
+- Rebuild index → documents get chunked, embedded, and stored locally.
+- Ask questions → chatbot fetches chunks → feeds into local LLM (via Ollama).
+- Answers strictly from uploaded docs; if answer not found → *“Sorry, I couldn’t find that information in the documents you uploaded.”*
+- Fully local: no API keys, no cloud dependency.
 
 ---
 
-## ⚡ Quickstart
+## 📦 Tech Stack
+- **Language:** Python 3.11
+- **LLM Hosting:** [Ollama](https://ollama.com) (runs locally)
+- **Vector DB:** Chroma (default), optional Qdrant/Redis
+- **Embeddings:** all-MiniLM-L6-v2 (SentenceTransformers)
+- **Backend:** FastAPI
+- **Frontend:** Streamlit
+- **Orchestration:** Lightweight agent pipeline (retrieval → context → LLM)
 
-### 1. Clone & setup
+---
+
+## ⚙️ Prerequisites
+- Ubuntu 22.04+ (works on Linux/Mac; Windows via WSL2).
+- Python 3.11
+- [Ollama](https://ollama.com/download) installed and running as a service.
+- Git + Docker (optional, if you want to run Qdrant).
+
+---
+
+## 🚀 Quickstart
+
+### 1. Clone the repo
 ```bash
 git clone https://github.com/mahmedmajeedai/social-support-agent.git
 cd social-support-agent
+```
+### 2. Create a virtual environment
+```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
 ```
 
-### 2. Add dummy data
-Place your files:
-- `data/raw/pdfs/bank_statement_sample.pdf`
-- `data/raw/txt/resume_sample.txt`
-- `data/raw/txt/credit_report_sample.txt`
-- `data/raw/excel/assets_liabilities_sample.csv`
-
-### 3. Build index
+### 3. Install & run Ollama
 ```bash
+# install ollama (if not already installed)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# verify service is active
+systemctl status ollama
+
+# pull a small instruct model (good for CPU)
+ollama pull phi3:3.8b-mini-instruct
+
+# test it
+ollama run phi3:3.8b-mini-instruct "Hello!"
+```
+
+### 4. Set environment variables
+```bash
+export OLLAMA_HOST=http://127.0.0.1:11434
+export OLLAMA_MODEL=phi3:3.8b-mini-instruct
+# quiet Chroma telemetry
+export ANONYMIZED_TELEMETRY=false
+export CHROMA_TELEMETRY_IMPLEMENTATION=none
+```
+### 5. Build the vector index
+```bash
+rm -rf .chroma/
 bash scripts/ingest.sh
 ```
-### 4. Run API
+### 6. Run the API
 ```bash
 uvicorn src.api.app:app --reload --port 8000
+```
+
+### 7. Run the Streamlit UI
+```bash
+streamlit run src/ui/app.py
 ```
